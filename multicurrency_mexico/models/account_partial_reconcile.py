@@ -10,6 +10,17 @@ from collections import OrderedDict
 class AccountPartialReconcile(models.Model):
     _inherit = 'account.partial.reconcile'
 
+    def create_exchange_rate_entry(self, aml_to_fix, amount_diff, diff_in_currency, currency, move_date):
+        line_to_reconcile, partial_rec = super(
+            AccountPartialReconcile, self).create_exchange_rate_entry(
+            aml_to_fix, amount_diff, diff_in_currency, currency, move_date)
+        move_exchange = self.env['account.move.line'].browse(
+            [line_to_reconcile]).move_id
+        for aml in aml_to_fix:
+            move_exchange.move_exchange_id = aml.move_id.id
+
+        return line_to_reconcile, partial_rec
+
     @api.model
     def create(self, vals):
         res = super(AccountPartialReconcile, self).create(vals)
@@ -132,5 +143,6 @@ class AccountPartialReconcile(models.Model):
                     'amount_currency': abs(diff_in_currency),
                     'currency_id': currency.id,
                 })
+                move.move_exchange_id = aml.move_id.id
             move.post()
         return line_to_reconcile.id, partial_rec.id

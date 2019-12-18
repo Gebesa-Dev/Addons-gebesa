@@ -21,6 +21,7 @@
     ],
     "data": [
         "views/res_currency_rate.xml",
+        "views/account_move_view.xml",
     ],
     "demo": [
     ],
