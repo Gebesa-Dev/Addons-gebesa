@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from openerp import api, models
+from openerp.exceptions import ValidationError
 
 
 class AccountPartialReconcile(models.Model):
@@ -24,6 +25,9 @@ class AccountPartialReconcile(models.Model):
             move = res.debit_move_id.move_id
             account = 'property_account_supplier_advance_id'
         if invoice and move:
+            if invoice.currency_id.id != invoice.company_id.currency_id.id:
+                if invoice.date_invoice != move.date:
+                    raise ValidationError("No Implementado")
             account = invoice.partner_id.mapped(account)
             line_base = move.line_ids.filtered(
                 lambda l: l.account_id == account)
