@@ -10,11 +10,28 @@ from openerp.exceptions import ValidationError
 class AccountInvoiceRefund(models.Model):
     _inherit = 'account.invoice.refund'
 
+    @api.model
+    def _get_domain_product_id(self):
+        acc = []
+        product_acc = 'property_account_income_id'
+        for inv in self.env['account.invoice'].browse(
+                self._context.get('active_ids')):
+            if type not in ('out_invoice', 'out_refund'):
+                product_acc = 'property_account_expense_id'
+            for account in inv.move_id.line_ids.mapped('account_id'):
+                acc.append(account.id)
+
+        return [
+            ('active', '=', True),
+            (product_acc, 'not in', acc),
+            (product_acc, '!=', False)]
+
     product_id = fields.Many2one(
         'product.product',
         string=_(u'Product'),
         ondelete='set null',
         select=True,
+        domain=_get_domain_product_id
     )
 
     amount = fields.Float(
