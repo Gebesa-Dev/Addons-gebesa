@@ -54,6 +54,7 @@ class AccountInvoiceRefund(models.Model):
 
         ctx.update({'product_id': product_id})
         ctx.update({'mode': mode})
+        ctx.update({'default_mode': mode})
         ctx.update({'amount': amount})
         # Se cambia el estatus para cuando sea tipo saldar o modificar, evitar la validacion de aprovar
         # if mode in ('cancel', 'modify'):
