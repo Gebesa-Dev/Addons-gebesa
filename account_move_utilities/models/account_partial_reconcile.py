@@ -60,18 +60,17 @@ class AccountPartialReconcile(models.Model):
                                         create_tax=False).reconcile()
 
             else:
-                if move.invoice_id.type != 'out_refund' and move.invoice_id.mode != 'cancel':
-                    line_base = move.line_ids.filtered(
-                        lambda l: l.account_id != account)
-                    line_reconcile = invoice.move_id.mapped('line_ids').filtered(
-                        lambda l: l.account_id != account)
-                    if line_base and line_reconcile:
-                        for line_r in line_reconcile:
-                            for line_b in line_base:
-                                if line_r.account_id.id == line_b.account_id.id:
-                                    if line_r.account_id.reconcile:
-                                        (line_b + line_r).with_context(
-                                            create_tax=False).reconcile()
+                line_base = move.line_ids.filtered(
+                    lambda l: l.account_id != account)
+                line_reconcile = invoice.move_id.mapped('line_ids').filtered(
+                    lambda l: l.account_id != account)
+                if line_base and line_reconcile:
+                    for line_r in line_reconcile:
+                        for line_b in line_base:
+                            if line_r.account_id.id == line_b.account_id.id:
+                                if line_r.account_id.reconcile:
+                                    (line_b + line_r).with_context(
+                                        create_tax=False).reconcile()
 
         return res
 
