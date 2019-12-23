@@ -83,28 +83,74 @@ class AccountPartialReconcile(models.Model):
                     reconcile.debit_move_id.invoice_id.type == 'out_invoice'):
                 invoice = reconcile.debit_move_id.invoice_id
                 move = reconcile.credit_move_id.move_id
-                account = 'property_account_customer_advance_id'
+                field_account = 'property_account_customer_advance_id'
             elif (reconcile.credit_move_id.invoice_id.type == 'in_invoice' and
                     reconcile.debit_move_id.invoice_id.type == 'in_refund'):
                 invoice = reconcile.credit_move_id.invoice_id
                 move = reconcile.debit_move_id.move_id
-                account = 'property_account_supplier_advance_id'
+                field_account = 'property_account_supplier_advance_id'
             if invoice and move:
-                account = invoice.partner_id.mapped(account)
-                line_base = move.line_ids.filtered(
-                    lambda l: l.account_id == account)
-                if line_base.debit > line_base.credit:
-                    pos_base = 'debit_move_id'
-                    pos_line = 'credit_move_id'
+                product = reconcile.credit_move_id.invoice_id.invoice_line_ids[
+                    0].product_id.id
+                deposit = self.pool['ir.values'].get_default(
+                    self._cr, self._uid, 'sale.config.settings',
+                    'deposit_product_id_setting') or False
+                account = invoice.account_id
+                if product == deposit:
+                    account_deposit = invoice.partner_id.mapped(field_account)
+                    line_base = move.line_ids.filtered(
+                        lambda l: l.account_id == account_deposit)
+                    if line_base.debit > line_base.credit:
+                        pos_base = 'debit_move_id'
+                        pos_line = 'credit_move_id'
+                    else:
+                        pos_base = 'credit_move_id'
+                        pos_line = 'debit_move_id'
+                    line_reconcile = invoice.advance_ids.mapped(
+                        'advance_id').mapped('move_id').mapped(
+                        'line_ids').filtered(
+                        lambda l: l.account_id == account_deposit)
+                    if line_base and line_reconcile:
+                        for line in line_reconcile:
+                            if line.account_id.reconcile:
+                                self.search([
+                                    (pos_base, '=', line_base.id),
+                                    (pos_line, '=', line.id)]).unlink()
+                    line_base = move.line_ids.filtered(
+                        lambda l: l.account_id != account)
+                    line_reconcile = invoice.move_id.mapped('line_ids').filtered(
+                        lambda l: l.account_id != account)
+                    if line_base and line_reconcile:
+                        for line_r in line_reconcile:
+                            for line_b in line_base:
+                                if line_r.account_id.id == line_b.account_id.id:
+                                    if line_r.account_id.reconcile:
+                                        if line_b.debit > line_b.credit:
+                                            pos_base = 'debit_move_id'
+                                            pos_line = 'credit_move_id'
+                                        else:
+                                            pos_base = 'credit_move_id'
+                                            pos_line = 'debit_move_id'
+                                        self.search([
+                                            (pos_base, '=', line_b.id),
+                                            (pos_line, '=', line_r.id)]).unlink()
                 else:
-                    pos_base = 'credit_move_id'
-                    pos_line = 'debit_move_id'
-                line_reconcile = invoice.advance_ids.mapped('advance_id').mapped(
-                    'move_id').mapped('line_ids').filtered(
-                    lambda l: l.account_id == account)
-                if line_base and line_reconcile:
-                    for line in line_reconcile:
-                        self.search([
-                            (pos_base, '=', line_base.id),
-                            (pos_line, '=', line.id)]).unlink()
+                    line_base = move.line_ids.filtered(
+                        lambda l: l.account_id != account)
+                    line_reconcile = invoice.move_id.mapped('line_ids').filtered(
+                        lambda l: l.account_id != account)
+                    if line_base and line_reconcile:
+                        for line_r in line_reconcile:
+                            for line_b in line_base:
+                                if line_r.account_id.id == line_b.account_id.id:
+                                    if line_r.account_id.reconcile:
+                                        if line_b.debit > line_b.credit:
+                                            pos_base = 'debit_move_id'
+                                            pos_line = 'credit_move_id'
+                                        else:
+                                            pos_base = 'credit_move_id'
+                                            pos_line = 'debit_move_id'
+                                        self.search([
+                                            (pos_base, '=', line_b.id),
+                                            (pos_line, '=', line_r.id)]).unlink()
         return super(AccountPartialReconcile, self).unlink()
