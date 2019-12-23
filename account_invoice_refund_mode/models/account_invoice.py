@@ -18,6 +18,23 @@ class AccountInvoice(models.Model):
         help=_('Indicates the selected type for credit note'),
     )
 
+    @api.multi
+    def action_move_create(self):
+        for inv in self:
+            if inv.type == 'out_refund' and inv.mode == 'cancel':
+                invoice_origin = self.search([('number', '=', inv.origin)])
+                if invoice_origin:
+                    ctx = dict(self._context, lang=inv.partner_id.lang)
+                    journal = inv.journal_id.with_context(ctx)
+                    ctx.update({'create_tax': False})
+                    reverse = invoice_origin.move_id.with_context(ctx).reverse_moves(
+                        date=None, journal_id=journal)
+                    for rev in self.env['account.move'].browse(reverse):
+                        rev.date = inv.date_invoice
+                        inv.move_id = rev.id
+                    return True
+        return super(AccountInvoice, self).action_move_create()
+
     @api.model
     def _prepare_refund(
             self, invoice, date_invoice=None, date=None,
