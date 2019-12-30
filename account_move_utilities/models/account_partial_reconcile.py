@@ -24,7 +24,7 @@ class AccountPartialReconcile(models.Model):
             invoice = res.credit_move_id.invoice_id
             move = res.debit_move_id.move_id
             field_account = 'property_account_supplier_advance_id'
-        if invoice and move:
+        if invoice and move and self._context.get('extend_reconcile', True):
             # if invoice.currency_id.id != invoice.company_id.currency_id.id:
             #     if invoice.date_invoice != move.date:
             #         raise ValidationError("No Implementado")
@@ -45,7 +45,8 @@ class AccountPartialReconcile(models.Model):
                     for line in line_reconcile:
                         if line.account_id.reconcile:
                             (line_base + line).with_context(
-                                create_tax=False).reconcile()
+                                create_tax=False,
+                                extend_reconcile=False).reconcile()
 
                 line_base = move.line_ids.filtered(
                     lambda l: l.account_id != account)
@@ -57,7 +58,8 @@ class AccountPartialReconcile(models.Model):
                             if line_r.account_id.id == line_b.account_id.id:
                                 if line_r.account_id.reconcile:
                                     (line_b + line_r).with_context(
-                                        create_tax=False).reconcile()
+                                        create_tax=False,
+                                        extend_reconcile=False).reconcile()
 
             else:
                 line_base = move.line_ids.filtered(
@@ -70,7 +72,8 @@ class AccountPartialReconcile(models.Model):
                             if line_r.account_id.id == line_b.account_id.id:
                                 if line_r.account_id.reconcile:
                                     (line_b + line_r).with_context(
-                                        create_tax=False).reconcile()
+                                        create_tax=False,
+                                        extend_reconcile=False).reconcile()
 
         return res
 
