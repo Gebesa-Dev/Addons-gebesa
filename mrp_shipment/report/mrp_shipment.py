@@ -38,21 +38,24 @@ class ParticularReport(models.AbstractModel):
                     AND ir2.lang = 'es_MX'
                     AND ir2.name = 'product.template,name'
                 LEFT JOIN mrp_bom AS mb2 ON pp.id = mb2.product_id
+                    AND mb2.active IS TRUE
                 WHERE mb.product_id = %s AND mb.type = 'phantom'
+                    AND mb.active IS TRUE
                 UNION SELECT
                     pp.id,
                     pp.default_code,
-                    COALESCE(ir.value, pp.individual_name, ir2.value, 
+                    COALESCE(ir.value, pp.individual_name, ir2.value,
                         pp.name_template, 'Sin definir') as producto,
                     ROUND(c.qty * ((mbl.product_qty / mb.product_qty)
                         * 1), 6) AS product_qty,
                     pf.name,
-                    CASE WHEN mb2.type = 'phantom' 
-                        THEN FALSE 
+                    CASE WHEN mb2.type = 'phantom'
+                        THEN FALSE
                         ELSE TRUE END AS not_kit,
                     CONCAT(c.r, '-', CAST(ROW_NUMBER () OVER () AS TEXT))
                 FROM componentes AS c
                 LEFT JOIN mrp_bom AS mb ON c.product_id = mb.product_id
+                    AND mb.active IS TRUE
                 JOIN mrp_bom_line AS mbl ON mb.id = mbl.bom_id
                 JOIN product_product AS pp ON mbl.product_id = pp.id
                 JOIN product_template AS pt ON pp.product_tmpl_id = pt.id
@@ -64,6 +67,7 @@ class ParticularReport(models.AbstractModel):
                     AND ir2.lang = 'es_MX'
                     AND ir2.name = 'product.template,name'
                 JOIN mrp_bom AS mb2 ON pp.id = mb2.product_id
+                    AND mb2.active IS TRUE
                 WHERE c.not_kit IS false
             )
             SELECT product_id, code, name, SUM(qty), family FROM componentes
