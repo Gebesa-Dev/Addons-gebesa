@@ -132,6 +132,7 @@
                                                     <td width="9%">Pedido</td>
                                                     <td width="8%">Embarca</td>
                                                     <td width="8%">Cantidad</td>
+                                                    <td width="8%">Peso</td>
                                                 </tr>
                                                 <t t-foreach="shipment[doc.id][family][partner][city]" t-as="line">
                                                     <t t-set="line" t-value="line.with_context({'lang':'es_MX'})"/>
@@ -154,6 +155,7 @@
                                                             <td><span t-esc="line.sale_order_id.name"/></td>
                                                             <td><span t-esc="line.product_id.family_id.name"/></td>
                                                             <td><span t-esc="line.quantity_shipped"/></td>
+                                                            <td><span t-esc="line.product_id.weight"/></td>
                                                         </tr>
                                                     </t>
                                                     <t t-if="line.product_id.id in kit.keys()">
