@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data>
+		<record model='ir.ui.view' id='view_order_form'>
+            <field name='name'>view_order_product_family_form</field>
+            <field name='model'>sale.order</field>
+            <field name='inherit_id' ref='sale.view_order_form'/>
+            <field name='arch' type='xml'>
+                <xpath expr="//sheet/notebook/page[last()]" position="after">
+                    <page string="Product Family">
+                        <field name="sale_order_product_family_id" string="Product Family">
+                            <tree string="Product Family" editable="bottom">                                  
+                                <field name="family_id"/>
+                                <field name="margin"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+	</data>
+</openerp>
