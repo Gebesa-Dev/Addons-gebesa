@@ -12,5 +12,16 @@
             <field eval="" name="args"/>
             <field name="active" eval="True" />
         </record>
+        <record id="ir_cron_recalculate_shiptment_status" model="ir.cron">
+            <field name="name">Recalcula el estatus de embarque de los pedidos</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field eval="False" name="doall"/>
+            <field eval="'sale.order'" name="model"/>
+            <field eval="'recalculate_shiptment_status'" name="function"/>
+            <field eval="" name="args"/>
+            <field name="active" eval="True" />
+        </record>
     </data>
 </openerp>
