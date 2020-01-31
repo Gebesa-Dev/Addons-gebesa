@@ -74,3 +74,12 @@ class SaleOrder(models.Model):
                 # sale.message_post(body=_(
                 #    "Shipment status <em>%s</em>.") % (
                 #    ship_status))
+
+    @api.model
+    def recalculate_shiptment_status(self):
+        order_ids = self.search([
+            ('geb_invoice_status', 'in', [
+                'no_invoice', 'partial_invoice', False]),
+            ('state', 'in', ['done', 'sale']),
+            ('only_customer_delivery', '=', False)])
+        order_ids._compuete_shiptment_status()
