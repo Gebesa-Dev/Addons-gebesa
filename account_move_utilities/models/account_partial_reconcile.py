@@ -80,6 +80,8 @@ class AccountPartialReconcile(models.Model):
     @api.multi
     def unlink(self):
         for reconcile in self:
+            if not self._context.get('extend_unlink_reconcile', True):
+                continue
             invoice = False
             move = False
             if (reconcile.credit_move_id.invoice_id.type == 'out_refund' and
@@ -118,7 +120,8 @@ class AccountPartialReconcile(models.Model):
                             if line.account_id.reconcile:
                                 self.search([
                                     (pos_base, '=', line_base.id),
-                                    (pos_line, '=', line.id)]).unlink()
+                                    (pos_line, '=', line.id)]).with_context(
+                                        extend_unlink_reconcile=False).unlink()
                     line_base = move.line_ids.filtered(
                         lambda l: l.account_id != account)
                     line_reconcile = invoice.move_id.mapped('line_ids').filtered(
@@ -136,7 +139,8 @@ class AccountPartialReconcile(models.Model):
                                             pos_line = 'debit_move_id'
                                         self.search([
                                             (pos_base, '=', line_b.id),
-                                            (pos_line, '=', line_r.id)]).unlink()
+                                            (pos_line, '=', line_r.id)]).with_context(
+                                            extend_unlink_reconcile=False).unlink()
                 else:
                     line_base = move.line_ids.filtered(
                         lambda l: l.account_id != account)
@@ -155,5 +159,6 @@ class AccountPartialReconcile(models.Model):
                                             pos_line = 'debit_move_id'
                                         self.search([
                                             (pos_base, '=', line_b.id),
-                                            (pos_line, '=', line_r.id)]).unlink()
+                                            (pos_line, '=', line_r.id)]).with_context(
+                                            extend_unlink_reconcile=False).unlink()
         return super(AccountPartialReconcile, self).unlink()
