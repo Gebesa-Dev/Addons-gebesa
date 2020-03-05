@@ -37,7 +37,7 @@ class MrpBomLineMassiveReplacement(models.TransientModel):
             for line in bom_line:
                 line.product_id = replacement.new_product_id.id
 
-                if line.product_id.standard_price == replacement.new_product_id.standard_price:
+                if replacement.product_id.standard_price == replacement.new_product_id.standard_price:
                     continue
 
                 if line.bom_id.id in done_ids:
