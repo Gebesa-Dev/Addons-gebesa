@@ -46,7 +46,5 @@ class MrpBomLineMassiveReplacement(models.TransientModel):
                 done_ids.append(line.bom_id.id)
 
             # Revaluacion
-            #comentado temporalmente 19/03/2020
-
-            # for bom in done_ids:
-            #     self.env['mrp.bom'].browse(bom).action_reval()
+            for bom in done_ids:
+                self.env['mrp.bom'].browse(bom).action_reval()
