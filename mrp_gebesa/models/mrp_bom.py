@@ -22,66 +22,126 @@ class MrpBom(models.Model):
                 raise UserError(_('This BOM has detail'))
         return super(MrpBom, self).unlink()
 
+    # @api.multi
+    # def write(self, values):
+    #     # te traes el producto anterior
+    #     # val = self.product_tmpl_id
+    #     for rec in self:
+
+    #         template = self.env['product.template']
+    #         if 'type' in values.keys():
+    #             types = values['type']
+    #         else:
+    #             types = rec.type
+    #         if 'warehouse_id' in values.keys():
+    #             ware_obj = self.env['stock.warehouse']
+    #             ware = ware_obj.browse(values['warehouse_id'])
+    #         else:
+    #             ware = rec.warehouse_id
+    #         if 'routing_id' in values.keys():
+    #             routing_obj = self.env['mrp.routing']
+    #             routing = routing_obj.browse(values['routing_id'])
+    #         else:
+    #             routing = rec.routing_id
+    #         if types == 'normal':
+    #             if ware.id != routing.location_id.stock_warehouse_id.id:
+    #                 raise UserError(_('The production route must'
+    #                                   ' be in the same warehouse than the bom'))
+    #             if rec.product_tmpl_id:
+    #                     rec.product_tmpl_id.invoice_policy = 'delivery'
+    #         if types == 'phantom':
+    #             if routing.id != 0:
+    #                 raise UserError(_('Kit products should not have route production'))
+    #             if rec.product_tmpl_id:
+    #                     rec.product_tmpl_id.invoice_policy = 'order'
+    #         route_ids = []
+    #         manuf_ids = [29, 30, 31, 32]
+    #         if 'product_tmpl_id' in values.keys():
+    #             # te traes el objeto vacio
+    #             template = self.env['product.template']
+    #             # se construye el objeto, y los busca por medio del values
+    #             val = template.browse(values['product_tmpl_id'])
+    #             # condicion para la busquedan
+    #             route_ids = val.mapped('route_ids').mapped('id')
+    #             if not any(x in manuf_ids for x in route_ids):
+    #                 if 6 in route_ids:
+    #                     raise UserError(_('This product is raw material'))
+
+    #             # for route in val.route_ids:
+    #             #     if route.id == 6:
+    #             #         raise UserError(_('This product is raw material'))
+    #         else:
+    #             val = rec.product_tmpl_id
+
+    #         if 'product_id' in values.keys():
+    #             producto_obj = self.env['product.product']
+    #             product = producto_obj.browse(values['product_id'])
+
+    #         else:
+    #             product = rec.product_id
+
+    #         if val.id != product.product_tmpl_id.id:
+    #             raise UserError(_('Product and template it does not match'))
+    #     return super(MrpBom, self).write(values)
+
     @api.multi
     def write(self, values):
         # te traes el producto anterior
         # val = self.product_tmpl_id
-        for rec in self:
-
+        template = self.env['product.template']
+        if 'type' in values.keys():
+            types = values['type']
+        else:
+            types = self.type
+        if 'warehouse_id' in values.keys():
+            ware_obj = self.env['stock.warehouse']
+            ware = ware_obj.browse(values['warehouse_id'])
+        else:
+            ware = self.warehouse_id
+        if 'routing_id' in values.keys():
+            routing_obj = self.env['mrp.routing']
+            routing = routing_obj.browse(values['routing_id'])
+        else:
+            routing = self.routing_id
+        if types == 'normal':
+            if ware.id != routing.location_id.stock_warehouse_id.id:
+                raise UserError(_('The production route must'
+                                  ' be in the same warehouse than the bom'))
+            if self.product_tmpl_id:
+                    self.product_tmpl_id.invoice_policy = 'delivery'
+        if types == 'phantom':
+            if routing.id != 0:
+                raise UserError(_('Kit products should not have route production'))
+            if self.product_tmpl_id:
+                    self.product_tmpl_id.invoice_policy = 'order'
+        route_ids = []
+        manuf_ids = [29, 30, 31, 32]
+        if 'product_tmpl_id' in values.keys():
+            # te traes el objeto vacio
             template = self.env['product.template']
-            if 'type' in values.keys():
-                types = values['type']
-            else:
-                types = rec.type
-            if 'warehouse_id' in values.keys():
-                ware_obj = self.env['stock.warehouse']
-                ware = ware_obj.browse(values['warehouse_id'])
-            else:
-                ware = rec.warehouse_id
-            if 'routing_id' in values.keys():
-                routing_obj = self.env['mrp.routing']
-                routing = routing_obj.browse(values['routing_id'])
-            else:
-                routing = rec.routing_id
-            if types == 'normal':
-                if ware.id != routing.location_id.stock_warehouse_id.id:
-                    raise UserError(_('The production route must'
-                                      ' be in the same warehouse than the bom'))
-                if rec.product_tmpl_id:
-                        rec.product_tmpl_id.invoice_policy = 'delivery'
-            if types == 'phantom':
-                if routing.id != 0:
-                    raise UserError(_('Kit products should not have route production'))
-                if rec.product_tmpl_id:
-                        rec.product_tmpl_id.invoice_policy = 'order'
-            route_ids = []
-            manuf_ids = [29, 30, 31, 32]
-            if 'product_tmpl_id' in values.keys():
-                # te traes el objeto vacio
-                template = self.env['product.template']
-                # se construye el objeto, y los busca por medio del values
-                val = template.browse(values['product_tmpl_id'])
-                # condicion para la busquedan
-                route_ids = val.mapped('route_ids').mapped('id')
-                if not any(x in manuf_ids for x in route_ids):
-                    if 6 in route_ids:
-                        raise UserError(_('This product is raw material'))
+            # se construye el objeto, y los busca por medio del values
+            val = template.browse(values['product_tmpl_id'])
+            # condicion para la busquedan
+            route_ids = val.mapped('route_ids').mapped('id')
+            if not any(x in manuf_ids for x in route_ids):
+                if 6 in route_ids:
+                    raise UserError(_('This product is raw material'))
 
-                # for route in val.route_ids:
-                #     if route.id == 6:
-                #         raise UserError(_('This product is raw material'))
-            else:
-                val = rec.product_tmpl_id
+            # for route in val.route_ids:
+            #     if route.id == 6:
+            #         raise UserError(_('This product is raw material'))
+        else:
+            val = self.product_tmpl_id
 
-            if 'product_id' in values.keys():
-                producto_obj = self.env['product.product']
-                product = producto_obj.browse(values['product_id'])
+        if 'product_id' in values.keys():
+            producto_obj = self.env['product.product']
+            product = producto_obj.browse(values['product_id'])
 
-            else:
-                product = rec.product_id
+        else:
+            product = self.product_id
 
-            if val.id != product.product_tmpl_id.id:
-                raise UserError(_('Product and template it does not match'))
+        if val.id != product.product_tmpl_id.id:
+            raise UserError(_('Product and template it does not match'))
         return super(MrpBom, self).write(values)
 
     @api.model
