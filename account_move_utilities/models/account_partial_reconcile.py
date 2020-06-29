@@ -40,13 +40,15 @@ class AccountPartialReconcile(models.Model):
                     lambda l: l.account_id == account_deposit)
                 line_reconcile = invoice.advance_ids.mapped('advance_id').mapped(
                     'move_id').mapped('line_ids').filtered(
-                    lambda l: l.account_id == account_deposit)
+                    lambda l: l.account_id == account_deposit and not l.reconciled)
                 if line_base and line_reconcile:
                     for line in line_reconcile:
-                        if line.account_id.reconcile:
-                            (line_base + line).with_context(
-                                create_tax=False,
-                                extend_reconcile=False).reconcile()
+                        import ipdb; ipdb.set_trace()
+                        if not line_base.reconciled:
+                            if line.account_id.reconcile:
+                                (line_base + line).with_context(
+                                    create_tax=False,
+                                    extend_reconcile=False).reconcile()
 
                 line_base = move.line_ids.filtered(
                     lambda l: l.account_id != account)
