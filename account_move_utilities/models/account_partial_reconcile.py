@@ -43,7 +43,6 @@ class AccountPartialReconcile(models.Model):
                     lambda l: l.account_id == account_deposit and not l.reconciled)
                 if line_base and line_reconcile:
                     for line in line_reconcile:
-                        import ipdb; ipdb.set_trace()
                         if not line_base.reconciled:
                             if line.account_id.reconcile:
                                 (line_base + line).with_context(
