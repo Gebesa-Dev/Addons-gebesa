@@ -32,8 +32,12 @@ class AccountInvoiceRefund(models.Model):
                         amount_advance = advance.amount_advance / 1.16
                     else:
                         amount_advance = advance.amount_advance
-                    if abs(line_reconcile.amount_residual) < amount_advance:
-                        raise UserError('Saldo insuficiente en el anticipo %s' % advance.advance_id.number)
+                    if abs(round(line_reconcile.amount_residual, 6)) < round(amount_advance, 6):
+                        raise UserError(
+                            'Saldo insuficiente en el anticipo %s (%s|%s)' % (
+                                advance.advance_id.number,
+                                round(line_reconcile.amount_residual, 6),
+                                round(amount_advance, 6)))
                     total_advance += advance.amount_advance
                 if abs(total_advance - self.amount) > 0.50 and invoice.date_invoice > '2019-10-07':
                     raise UserError('Debe aplicar el total de los anticipos')
